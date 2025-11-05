@@ -231,56 +231,56 @@ with tab1:
 # ---------------------------
 # TAB 2: Signal Generator
 # ---------------------------
+# ==================================================
+# TAB 2: SIGNAL GENERATOR
+# ==================================================
 with tab2:
     st.header("🎛️ Signal Generator")
 
     col1, col2 = st.columns(2)
     with col1:
         wave_type = st.selectbox("Jenis Gelombang", ["Sine", "Square", "Triangle", "Noise"], key="gen_wave_type")
-        fs = st.number_input("Sample Rate (Hz)", min_value=8000, max_value=96000, value=44100, step=1000, key="gen_fs")
+        fs = st.number_input("Sample Rate (Hz)", min_value=8000, max_value=96000, value=44100, step=1000, key="input_fs")
     with col2:
-        freq = st.number_input("Frekuensi (Hz)", min_value=1, max_value=20000, value=440, step=1, key="gen_freq")
-        duration = st.number_input("Durasi (detik)", min_value=0.1, max_value=60.0, value=3.0, step=0.1, key="gen_duration")
+        freq = st.number_input("Frekuensi (Hz)", min_value=1, max_value=20000, value=440, step=1, key="input_freq")
+        duration = st.number_input("Durasi (detik)", min_value=0.1, max_value=60.0, value=3.0, step=0.1, key="input_duration")
 
     st.info("Klik **Generate Audio** untuk membuat sinyal, lalu atur Durasi tampilan tanpa membuat data hilang.")
 
-    # initialize session_state storage for generator
-    if "gen_wave" not in st.session_state:
-        st.session_state.gen_wave = None
-        st.session_state.gen_fs = None
-        st.session_state.gen_freq = None
-        st.session_state.gen_type = None
+    # Simpan hasil generator ke session_state agar tidak hilang
+    if "wave_data" not in st.session_state:
+        st.session_state.wave_data = None
+        st.session_state.wave_fs = None
+        st.session_state.wave_freq = None
+        st.session_state.wave_type = None
 
-    if st.button("🎵 Generate Audio", key="gen_button"):
-        # generate and store in session state
-        w = generate_waveform(wave_type, freq, duration, fs)
-        st.session_state.gen_wave = w
-        st.session_state.gen_fs = fs
-        st.session_state.gen_freq = freq
-        st.session_state.gen_type = wave_type
+    if st.button("🎵 Generate Audio", key="btn_generate"):
+        wave = generate_waveform(wave_type, freq, duration, fs)
+        st.session_state.wave_data = wave
+        st.session_state.wave_fs = fs
+        st.session_state.wave_freq = freq
+        st.session_state.wave_type = wave_type
 
-    # if stored signal exists, show controls/plots
-    if st.session_state.get("gen_wave") is not None:
-        wave = st.session_state.gen_wave
-        gen_fs = st.session_state.gen_fs
-        gen_freq = st.session_state.gen_freq
-        gen_type = st.session_state.gen_type
+    # Jika data sudah ada → tampilkan hasil
+    if st.session_state.wave_data is not None:
+        wave = st.session_state.wave_data
+        fs = st.session_state.wave_fs
+        freq = st.session_state.wave_freq
+        wave_type = st.session_state.wave_type
 
-        # audio preview & download
         stereo = np.vstack((wave, wave)).T
         buf = io.BytesIO()
-        sf.write(buf, stereo, gen_fs, format='wav')
+        sf.write(buf, stereo, fs, format='wav')
         buf.seek(0)
 
         st.subheader("▶️ Preview Suara")
         st.audio(buf, format='audio/wav')
-        st.download_button(label="💾 Download File .WAV", data=buf,
-                           file_name=f"{gen_type}_{gen_freq}Hz_{len(wave)/gen_fs:.2f}s.wav",
-                           mime="audio/wav")
+        st.download_button("💾 Download File .WAV", data=buf,
+                           file_name=f"{wave_type}_{freq}Hz.wav", mime="audio/wav")
 
-        st.markdown("🕒 **Durasi tampilan (detik)**: atur berapa panjang potongan sinyal yang ditampilkan (zoom).")
-        zoom_dur = st.slider("Durasi tampilan (detik)", 0.001, 0.2, 0.02, step=0.001, key="zoom_gen")
+        st.markdown("🕒 **Durasi tampilan (detik)**: ubah panjang potongan sinyal untuk zoom.")
+        zoom_dur = st.slider("Durasi tampilan (detik)", 0.001, 0.2, 0.02, step=0.001, key="zoom_waveform")
 
-        visualize_waveform_plotly(wave, gen_fs, f"{gen_type} Wave - {gen_freq} Hz", duration_display=zoom_dur)
-        visualize_spectrum_plotly(wave, gen_fs, f"Spektrum {gen_type} {gen_freq} Hz")
+        visualize_waveform_plotly(wave, fs, f"{wave_type} Wave - {freq} Hz", duration_display=zoom_dur)
+        visualize_spectrum_plotly(wave, fs, f"Spektrum {wave_type} {freq} Hz")
 

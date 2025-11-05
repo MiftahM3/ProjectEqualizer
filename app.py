@@ -137,12 +137,12 @@ with tab1:
         data2, fs2 = sf.read(file2)
 
         if fs1 != fs2:
-            st.error("⚠️ Sample rate kedua file harus sama!")
+            st.error(" Sample rate kedua file harus sama!")
         else:
             if len(data1.shape) > 1: data1 = np.mean(data1, axis=1)
             if len(data2.shape) > 1: data2 = np.mean(data2, axis=1)
 
-            st.subheader("🎚️ Channel Control")
+            st.subheader(" Channel Control")
             col1, col2 = st.columns(2)
             with col1:
                 gain1 = st.slider("Gain Ch1 (dB)", -20, 12, 0)
@@ -178,7 +178,6 @@ with tab1:
 
             # ==== Analisis ====
             st.subheader("📈 Analisis Domain Waktu")
-            st.markdown("🕒 **Durasi tampilan (detik)** menentukan seberapa panjang sinyal yang ditampilkan pada grafik di bawah.")
             zoom_dur = st.slider("Durasi tampilan (detik)", 0.001, 0.1, 0.02, step=0.001, key="zoom_eq")
             visualize_waveform(left, fs1, "Sebelum EQ (Left Channel)", duration_display=zoom_dur)
             visualize_waveform(eq, fs1, "Sesudah EQ (Left Channel)", duration_display=zoom_dur)
@@ -249,7 +248,6 @@ with tab2:
         )
 
         # Slider durasi tampilan
-        st.markdown("🕒 **Durasi tampilan (detik)** menentukan seberapa panjang potongan sinyal yang akan ditampilkan.")
         zoom_dur = st.slider(
             "Durasi tampilan (detik)",
             0.001, 0.1, 0.02, step=0.001,
@@ -258,5 +256,6 @@ with tab2:
 
         visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz", duration_display=zoom_dur)
         visualize_spectrum(wave, fs, f"Spektrum {wave_type} {freq} Hz")
+
 
 

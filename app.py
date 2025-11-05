@@ -177,6 +177,29 @@ with tab2:
             mime="audio/wav"
         )
 
-        st.subheader("📈 Visualisasi Gelombang")
-        visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz")
+        def visualize_waveform(wave, fs, title="Waveform", duration_display=0.01):
+    """
+    Menampilkan visualisasi gelombang waktu-domain yang jelas dan informatif.
+    wave: data audio (numpy array)
+    fs: sample rate (Hz)
+    title: judul plot
+    duration_display: durasi bagian awal yang ditampilkan (detik)
+    """
+    import matplotlib.pyplot as plt
+
+    # Hitung jumlah sampel yang akan ditampilkan (misal 0.01 detik = 10ms)
+    samples_to_show = int(fs * duration_display)
+    t = np.linspace(0, duration_display, samples_to_show, endpoint=False)
+    wave_segment = wave[:samples_to_show]
+
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.plot(t, wave_segment, color='royalblue', linewidth=1.5)
+
+    ax.set_title(f"{title}\n(Sample Rate: {fs} Hz, Durasi ditampilkan: {duration_display*1000:.1f} ms)", fontsize=12, fontweight='bold')
+    ax.set_xlabel("Waktu (detik)", fontsize=11)
+    ax.set_ylabel("Amplitudo", fontsize=11)
+    ax.grid(True, linestyle='--', alpha=0.6)
+    ax.set_ylim(-1.1, 1.1)
+
+    st.pyplot(fig)
 

@@ -82,6 +82,66 @@ def visualize_spectrum(wave, fs, title="Spektrum Frekuensi"):
     ax.grid(True, linestyle='--', alpha=0.6)
     ax.set_xlim(0, fs/2)
     st.pyplot(fig)
+# ==================================================
+# VISUALISASI SPEKTRUM 3-BAND (BASS / MID / TREBLE)
+# ==================================================
+st.subheader("📊 Analisis Spektrum 3-Band (Bass / Mid / Treble)")
+
+# Hitung FFT untuk tiap komponen
+N = len(left)
+f = np.fft.rfftfreq(N, 1/fs1)
+
+def compute_fft_db(signal):
+    mag = np.abs(np.fft.rfft(signal)) / N
+    return 20 * np.log10(mag + 1e-10)
+
+fft_before_db = compute_fft_db(left)
+fft_bass_db = compute_fft_db(bass)
+fft_mid_db = compute_fft_db(mid)
+fft_treble_db = compute_fft_db(treble)
+fft_after_db = compute_fft_db(eq)
+
+# Plot perbandingan sebelum–sesudah EQ
+fig, ax = plt.subplots(figsize=(10, 4))
+ax.plot(f, fft_before_db, color='gray', linewidth=1.0, label='Sebelum EQ')
+ax.plot(f, fft_after_db, color='orange', linewidth=1.5, label='Sesudah EQ')
+ax.set_title("Spektrum Sebelum vs Sesudah EQ", fontsize=12, fontweight='bold')
+ax.set_xlabel("Frekuensi (Hz)")
+ax.set_ylabel("Magnitudo (dB)")
+ax.legend()
+ax.grid(True, linestyle='--', alpha=0.6)
+ax.set_xlim(0, fs1 / 2)
+st.pyplot(fig)
+
+# Plot komponen BASS
+fig, ax = plt.subplots(figsize=(10, 4))
+ax.plot(f, fft_bass_db, color='blue', linewidth=1.2)
+ax.set_title("Spektrum Komponen BASS (LPF @250 Hz)", fontsize=12, fontweight='bold')
+ax.set_xlabel("Frekuensi (Hz)")
+ax.set_ylabel("Magnitudo (dB)")
+ax.grid(True, linestyle='--', alpha=0.6)
+ax.set_xlim(0, fs1 / 2)
+st.pyplot(fig)
+
+# Plot komponen MID
+fig, ax = plt.subplots(figsize=(10, 4))
+ax.plot(f, fft_mid_db, color='green', linewidth=1.2)
+ax.set_title("Spektrum Komponen MID (BPF 500–4000 Hz)", fontsize=12, fontweight='bold')
+ax.set_xlabel("Frekuensi (Hz)")
+ax.set_ylabel("Magnitudo (dB)")
+ax.grid(True, linestyle='--', alpha=0.6)
+ax.set_xlim(0, fs1 / 2)
+st.pyplot(fig)
+
+# Plot komponen TREBLE
+fig, ax = plt.subplots(figsize=(10, 4))
+ax.plot(f, fft_treble_db, color='red', linewidth=1.2)
+ax.set_title("Spektrum Komponen TREBLE (HPF @5kHz)", fontsize=12, fontweight='bold')
+ax.set_xlabel("Frekuensi (Hz)")
+ax.set_ylabel("Magnitudo (dB)")
+ax.grid(True, linestyle='--', alpha=0.6)
+ax.set_xlim(0, fs1 / 2)
+st.pyplot(fig)
 
 # ==================================================
 # 🧠 Streamlit App
@@ -204,3 +264,4 @@ with tab2:
         zoom_dur = st.slider("Durasi tampilan gelombang (detik)", 0.001, 0.05, 0.01, step=0.001)
         visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz", duration_display=zoom_dur)
         visualize_spectrum(wave, fs, f"Spektrum {wave_type} {freq} Hz")
+

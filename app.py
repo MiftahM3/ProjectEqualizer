@@ -115,11 +115,7 @@ def visualize_spectrum(wave, fs, title="Spektrum Frekuensi", show_cutoff=True):
 # ==================================================
 # 🧠 Streamlit App
 # ==================================================
-st.set_page_config(
-    page_title="Aplikasi Audio Mixer Kelompok 2",
-    page_icon="🎚️",
-    layout="centered"
-)
+st.set_page_config(page_title="Aplikasi Audio Mixer Kelompok 2", page_icon="🎚️", layout="centered")
 st.title("🎚️ Software-Defined Audio Mixer + Equalizer + Generator")
 st.caption("Kelompok 2 • Digital Signal Processing (DSK) • 2025")
 
@@ -181,7 +177,7 @@ with tab1:
             # ==== Analisis ====
             st.subheader("📈 Analisis Domain Waktu")
             st.markdown("🕒 **Durasi tampilan (detik)** menentukan seberapa panjang sinyal yang ditampilkan pada grafik di bawah.")
-            zoom_dur = st.slider("Durasi tampilan (detik)", 0.001, 0.1, 0.02, step=0.001)
+            zoom_dur = st.slider("Durasi tampilan (detik)", 0.001, 0.1, 0.02, step=0.001, key="zoom_eq")
             visualize_waveform(left, fs1, "Sebelum EQ (Left Channel)", duration_display=zoom_dur)
             visualize_waveform(eq, fs1, "Sesudah EQ (Left Channel)", duration_display=zoom_dur)
 
@@ -230,6 +226,6 @@ with tab2:
         )
 
         st.markdown("🕒 **Durasi tampilan (detik)** menentukan seberapa panjang potongan sinyal yang akan ditampilkan.")
-        zoom_dur = st.slider("Durasi tampilan (detik)", 0.001, 0.1, 0.02, step=0.001)
+        zoom_dur = st.slider("Durasi tampilan (detik)", 0.001, 0.1, 0.02, step=0.001, key="zoom_gen")
         visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz", duration_display=zoom_dur)
         visualize_spectrum(wave, fs, f"Spektrum {wave_type} {freq} Hz")

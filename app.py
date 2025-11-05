@@ -49,14 +49,16 @@ def generate_waveform(wave_type, freq, duration, fs):
     return y / np.max(np.abs(y))
 
 def visualize_waveform(wave, fs, title="Waveform", duration_display=0.01):
-    """Visualisasi gelombang waktu-domain (zoomable & jelas)."""
+    """Visualisasi gelombang waktu-domain (aman & jelas)."""
     samples_to_show = int(fs * duration_display)
-    t = np.linspace(0, duration_display, samples_to_show, endpoint=False)
+    samples_to_show = min(samples_to_show, len(wave))  # <== batas aman
+
+    t = np.linspace(0, samples_to_show / fs, samples_to_show, endpoint=False)
     wave_segment = wave[:samples_to_show]
 
     fig, ax = plt.subplots(figsize=(10, 4))
     ax.plot(t, wave_segment, color='royalblue', linewidth=1.5)
-    ax.set_title(f"{title}\n(Sample Rate: {fs} Hz, Durasi tampilan: {duration_display*1000:.1f} ms)",
+    ax.set_title(f"{title}\n(Sample Rate: {fs} Hz, Tampilan: {duration_display*1000:.1f} ms)",
                  fontsize=12, fontweight='bold')
     ax.set_xlabel("Waktu (detik)", fontsize=11)
     ax.set_ylabel("Amplitudo", fontsize=11)
@@ -67,9 +69,9 @@ def visualize_waveform(wave, fs, title="Waveform", duration_display=0.01):
 # ==================================================
 # 🧠 Streamlit App
 # ==================================================
-st.set_page_config(page_title="Software-Defined Audio Mixer", page_icon="🎚️", layout="centered")
-st.title("🎚️ Software-Defined Audio Mixer + Generator + Equalizer")
-st.write("Aplikasi proyek DSK: **Audio Mixer, Equalizer, dan Generator Sinyal Digital**")
+st.set_page_config(page_title="Aplikasi Audio Mixer Kelompok 2", page_icon href="https://cdn-icons-png.flaticon.com/512/168/168821.png", layout="centered")
+st.title(" Software-Defined Audio Mixer + Equalizer + Generator")
+st.write("Aplikasi projeck DSK: Desain dan Implementasi Software-Defined Audio Mixer dan Equalizer")
 
 # ==================================================
 # 🔀 Tabs
@@ -185,3 +187,4 @@ with tab2:
 
         zoom_dur = st.slider("Durasi tampilan gelombang (detik)", 0.001, 0.05, 0.01, step=0.001)
         visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz", duration_display=zoom_dur)
+

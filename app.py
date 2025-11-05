@@ -48,39 +48,47 @@ def generate_waveform(wave_type, freq, duration, fs):
     return y / np.max(np.abs(y))
 
 # ==================================================
-# 📊 Visualisasi
+# 📊 Visualisasi (Versi Rapi)
 # ==================================================
 def visualize_waveform(wave, fs, title="Waveform", duration_display=0.01):
-    """Visualisasi gelombang waktu-domain (aman & jelas)."""
+    """Plot time-domain dengan tampilan bersih dan label jelas."""
     samples_to_show = int(fs * duration_display)
     samples_to_show = min(samples_to_show, len(wave))
     t = np.linspace(0, samples_to_show / fs, samples_to_show, endpoint=False)
     wave_segment = wave[:samples_to_show]
 
     fig, ax = plt.subplots(figsize=(10, 4))
-    ax.plot(t, wave_segment, color='royalblue', linewidth=1.5)
-    ax.set_title(f"{title}\n(Sample Rate: {fs} Hz, Tampilan: {duration_display*1000:.1f} ms)",
-                 fontsize=12, fontweight='bold')
-    ax.set_xlabel("Waktu (detik)")
-    ax.set_ylabel("Amplitudo")
-    ax.grid(True, linestyle='--', alpha=0.6)
+    ax.plot(t, wave_segment, color='#1E88E5', linewidth=1.8)
+    ax.set_title(title, fontsize=13, fontweight='bold', color='#222831', pad=10)
+    ax.set_xlabel("Waktu (detik)", fontsize=11)
+    ax.set_ylabel("Amplitudo", fontsize=11)
+    ax.grid(True, linestyle='--', alpha=0.5)
+    ax.set_facecolor('#FAFAFA')
     ax.set_ylim(-1.1, 1.1)
     st.pyplot(fig)
 
-def visualize_spectrum(wave, fs, title="Spektrum Frekuensi"):
-    """Visualisasi domain frekuensi (FFT)."""
+def visualize_spectrum(wave, fs, title="Spektrum Frekuensi", show_cutoff=False):
+    """Plot FFT dengan tampilan profesional dan opsional garis cutoff."""
     N = len(wave)
     f = np.fft.rfftfreq(N, 1/fs)
     fft_mag = np.abs(np.fft.rfft(wave)) / N
     fft_db = 20 * np.log10(fft_mag + 1e-10)
 
     fig, ax = plt.subplots(figsize=(10, 4))
-    ax.plot(f, fft_db, color='orange', linewidth=1.2)
-    ax.set_title(f"{title} (Fs={fs} Hz)", fontsize=12, fontweight='bold')
-    ax.set_xlabel("Frekuensi (Hz)")
-    ax.set_ylabel("Magnitudo (dB)")
-    ax.grid(True, linestyle='--', alpha=0.6)
-    ax.set_xlim(0, fs/2)
+    ax.plot(f, fft_db, color='#FB8C00', linewidth=1.6)
+    ax.set_title(title, fontsize=13, fontweight='bold', color='#222831', pad=10)
+    ax.set_xlabel("Frekuensi (Hz)", fontsize=11)
+    ax.set_ylabel("Magnitudo (dB)", fontsize=11)
+    ax.grid(True, linestyle='--', alpha=0.5)
+    ax.set_xlim(0, fs / 2)
+    ax.set_facecolor('#FAFAFA')
+
+    # Garis cutoff frekuensi EQ (opsional)
+    if show_cutoff:
+        ax.axvline(250, color='blue', linestyle='--', alpha=0.5, label='LPF 250Hz')
+        ax.axvline(4000, color='green', linestyle='--', alpha=0.5, label='BPF 500–4000Hz')
+        ax.axvline(5000, color='red', linestyle='--', alpha=0.5, label='HPF 5kHz')
+        ax.legend(fontsize=9, loc='upper right', frameon=False)
     st.pyplot(fig)
 
 # ==================================================
@@ -92,7 +100,7 @@ st.set_page_config(
     layout="centered"
 )
 st.title("🎚️ Software-Defined Audio Mixer + Equalizer + Generator")
-st.write("Aplikasi Proyek DSK: **Desain dan Implementasi Software-Defined Audio Mixer dan Equalizer**")
+st.caption("Kelompok 2 • Digital Signal Processing (DSK) • 2025")
 
 # ==================================================
 # 🔀 Tabs
@@ -154,25 +162,29 @@ with tab1:
             temp_eq.seek(0)
             st.audio(temp_eq, format='audio/wav')
 
-            # ==== VISUALISASI WAKTU & SPEKTRUM ====
-            st.subheader("📈 Visualisasi Sebelum & Sesudah EQ")
+            # ==== VISUALISASI WAKTU & FREKUENSI ====
+            st.subheader("📈 Analisis Sebelum dan Sesudah EQ")
             zoom_dur = st.slider("Durasi tampilan (detik)", 0.001, 0.05, 0.01, step=0.001)
             visualize_waveform(left, fs1, "Sebelum EQ (Left Channel)", duration_display=zoom_dur)
             visualize_waveform(eq, fs1, "Sesudah EQ (Left Channel)", duration_display=zoom_dur)
 
-            # ==== SPEKTRUM SEBELUM vs SESUDAH EQ ====
             N = len(left)
             f = np.fft.rfftfreq(N, 1/fs1)
             def fft_db(signal): return 20*np.log10(np.abs(np.fft.rfft(signal))/N + 1e-10)
             fft_before, fft_after = fft_db(left), fft_db(eq)
 
             fig, ax = plt.subplots(figsize=(10, 4))
-            ax.plot(f, fft_before, color='gray', linewidth=1.0, label='Sebelum EQ')
-            ax.plot(f, fft_after, color='orange', linewidth=1.4, label='Sesudah EQ')
-            ax.set_title("Perbandingan Spektrum Sebelum vs Sesudah EQ", fontsize=12, fontweight='bold')
-            ax.set_xlabel("Frekuensi (Hz)")
-            ax.set_ylabel("Magnitudo (dB)")
-            ax.legend(); ax.grid(True, linestyle='--', alpha=0.6)
+            ax.plot(f, fft_before, color='#9E9E9E', linewidth=1.2, label='Sebelum EQ')
+            ax.plot(f, fft_after, color='#F4511E', linewidth=1.6, label='Sesudah EQ')
+            ax.axvline(250, color='blue', linestyle='--', alpha=0.5, label='LPF 250Hz')
+            ax.axvline(4000, color='green', linestyle='--', alpha=0.5, label='BPF 500–4000Hz')
+            ax.axvline(5000, color='red', linestyle='--', alpha=0.5, label='HPF 5kHz')
+            ax.set_title("Perbandingan Spektrum Sebelum vs Sesudah EQ", fontsize=13, fontweight='bold')
+            ax.set_xlabel("Frekuensi (Hz)", fontsize=11)
+            ax.set_ylabel("Magnitudo (dB)", fontsize=11)
+            ax.legend(fontsize=9, loc='upper right', frameon=False)
+            ax.grid(True, linestyle='--', alpha=0.5)
+            ax.set_facecolor('#FAFAFA')
             ax.set_xlim(0, fs1/2)
             st.pyplot(fig)
 

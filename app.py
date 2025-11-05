@@ -3,7 +3,6 @@ import numpy as np
 import soundfile as sf
 import io
 from scipy.signal import butter, lfilter
-from pydub import AudioSegment
 import tempfile
 
 # -------------------------------
@@ -86,10 +85,13 @@ if file1 and file2:
             gain2 = st.slider("Gain Ch2 (dB)", -20, 12, 0)
             pan2 = st.slider("Pan Ch2 (-1=L, +1=R)", -1.0, 1.0, 0.0)
 
-        # Mix
+        # Mix audio
         mixed = mix_audio(data1, data2, gain1, gain2, pan1, pan2)
 
-        st.audio(sf.write(io.BytesIO(), mixed, fs1, format='wav'))
+        # Simpan audio sementara untuk diputar
+        temp_mixed = io.BytesIO()
+        sf.write(temp_mixed, mixed, fs1, format='wav')
+        st.audio(temp_mixed)
 
         # Equalizer Section
         st.subheader("🎛️ 3-Band Equalizer")
@@ -97,25 +99,31 @@ if file1 and file2:
         mid_gain = st.slider("Mid (BPF 500Hz–4kHz)", -12, 12, 0)
         treble_gain = st.slider("Treble (HPF @ 5kHz)", -12, 12, 0)
 
-        # Apply filters
-        bass = apply_filter(mixed[:,0], fs1, 'low', cutoff_low=250) * db_to_gain(bass_gain)
-        mid = apply_filter(mixed[:,0], fs1, 'band', cutoff_low=500, cutoff_high=4000) * db_to_gain(mid_gain)
-        treble = apply_filter(mixed[:,0], fs1, 'high', cutoff_high=5000) * db_to_gain(treble_gain)
+        # Apply filters (per channel)
+        left = mixed[:, 0]
+        right = mixed[:, 1]
 
-        # Combine EQ output
+        bass = apply_filter(left, fs1, 'low', cutoff_low=250) * db_to_gain(bass_gain)
+        mid = apply_filter(left, fs1, 'band', cutoff_low=500, cutoff_high=4000) * db_to_gain(mid_gain)
+        treble = apply_filter(left, fs1, 'high', cutoff_high=5000) * db_to_gain(treble_gain)
+
         eq_left = bass + mid + treble
-        eq_right = eq_left  # same for simplicity
+        eq_right = eq_left  # same EQ for both channels
         eq_stereo = np.vstack((eq_left, eq_right)).T
 
-        # Normalize output
+        # Normalize to prevent clipping
         eq_stereo /= np.max(np.abs(eq_stereo))
 
-        # Play output
-        st.audio(sf.write(io.BytesIO(), eq_stereo, fs1, format='wav'))
+        # Preview EQ output
+        temp_eq = io.BytesIO()
+        sf.write(temp_eq, eq_stereo, fs1, format='wav')
+        st.audio(temp_eq)
 
-        # Save output
-        if st.button("💾 Simpan hasil Mixdown (.wav)"):
+        # Save result
+        st.subheader("💾 Simpan hasil Mixdown")
+        if st.button("Generate File"):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
                 sf.write(tmp.name, eq_stereo, fs1)
-                st.download_button("Download hasil mixdown", tmp.read(), "mixdown_output.wav")
+                with open(tmp.name, "rb") as f:
+                    st.download_button("Download hasil mixdown", f, file_name="mixdown_output.wav")
 

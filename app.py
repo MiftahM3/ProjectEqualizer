@@ -233,4 +233,4 @@ with tab2:
 
         zoom_dur = st.slider("Durasi tampilan gelombang (detik)", 0.001, 0.05, 0.01, step=0.001)
         visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz", duration_display=zoom_dur)
-        visualize_spectrum(wave, fs, f"Spektru_
+        visualize_spectrum(wave, fs, f"Spektrum {wave_type} {freq} Hz")

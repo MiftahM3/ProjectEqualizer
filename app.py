@@ -150,10 +150,14 @@ with tab2:
     col1, col2 = st.columns(2)
     with col1:
         wave_type = st.selectbox("Jenis Gelombang", ["Sine", "Square", "Triangle", "Noise"])
-        fs = st.number_input("Sample Rate (Hz)", 8000, 48000, 44100)
+        fs = st.number_input("Sample Rate (Hz)", min_value=8000, max_value=96000, value=44100, step=1000)
     with col2:
-        freq = st.slider("Frekuensi (Hz)", 20, 5000, 440)
-        duration = st.slider("Durasi (detik)", 1, 10, 3)
+        # Frekuensi manual
+        freq = st.number_input("Frekuensi (Hz)", min_value=1, max_value=20000, value=440, step=1)
+        # Durasi manual
+        duration = st.number_input("Durasi (detik)", min_value=0.1, max_value=60.0, value=3.0, step=0.1)
+
+    st.info("💡 Kamu bisa ketik nilai manual di kolom atas untuk hasil yang lebih presisi.")
 
     if st.button("🎵 Generate Audio"):
         wave = generate_waveform(wave_type, freq, duration, fs)
@@ -175,3 +179,4 @@ with tab2:
 
         st.subheader("📈 Visualisasi Gelombang")
         visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz")
+

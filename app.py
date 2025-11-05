@@ -2,7 +2,6 @@ import streamlit as st
 import numpy as np
 import soundfile as sf
 import io
-import tempfile
 from scipy.signal import butter, lfilter, sawtooth, square
 import matplotlib.pyplot as plt
 
@@ -48,11 +47,13 @@ def generate_waveform(wave_type, freq, duration, fs):
         y = np.zeros_like(t)
     return y / np.max(np.abs(y))
 
+# ==================================================
+# 📊 Visualisasi
+# ==================================================
 def visualize_waveform(wave, fs, title="Waveform", duration_display=0.01):
     """Visualisasi gelombang waktu-domain (aman & jelas)."""
     samples_to_show = int(fs * duration_display)
-    samples_to_show = min(samples_to_show, len(wave))  # <== batas aman
-
+    samples_to_show = min(samples_to_show, len(wave))  # batas aman
     t = np.linspace(0, samples_to_show / fs, samples_to_show, endpoint=False)
     wave_segment = wave[:samples_to_show]
 
@@ -60,18 +61,38 @@ def visualize_waveform(wave, fs, title="Waveform", duration_display=0.01):
     ax.plot(t, wave_segment, color='royalblue', linewidth=1.5)
     ax.set_title(f"{title}\n(Sample Rate: {fs} Hz, Tampilan: {duration_display*1000:.1f} ms)",
                  fontsize=12, fontweight='bold')
-    ax.set_xlabel("Waktu (detik)", fontsize=11)
-    ax.set_ylabel("Amplitudo", fontsize=11)
+    ax.set_xlabel("Waktu (detik)")
+    ax.set_ylabel("Amplitudo")
     ax.grid(True, linestyle='--', alpha=0.6)
     ax.set_ylim(-1.1, 1.1)
+    st.pyplot(fig)
+
+def visualize_spectrum(wave, fs, title="Spektrum Frekuensi"):
+    """Visualisasi domain frekuensi (FFT)."""
+    N = len(wave)
+    f = np.fft.rfftfreq(N, 1/fs)
+    fft_mag = np.abs(np.fft.rfft(wave)) / N
+    fft_db = 20 * np.log10(fft_mag + 1e-10)
+
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.plot(f, fft_db, color='orange', linewidth=1.2)
+    ax.set_title(f"{title} (Fs={fs} Hz)", fontsize=12, fontweight='bold')
+    ax.set_xlabel("Frekuensi (Hz)")
+    ax.set_ylabel("Magnitudo (dB)")
+    ax.grid(True, linestyle='--', alpha=0.6)
+    ax.set_xlim(0, fs/2)
     st.pyplot(fig)
 
 # ==================================================
 # 🧠 Streamlit App
 # ==================================================
-st.set_page_config(page_title="Aplikasi Audio Mixer Kelompok 2", page_icon href="https://cdn-icons-png.flaticon.com/512/168/168821.png", layout="centered")
-st.title(" Software-Defined Audio Mixer + Equalizer + Generator")
-st.write("Aplikasi projeck DSK: Desain dan Implementasi Software-Defined Audio Mixer dan Equalizer")
+st.set_page_config(
+    page_title="Aplikasi Audio Mixer Kelompok 2",
+    page_icon="https://cdn-icons-png.flaticon.com/512/168/168821.png",
+    layout="centered"
+)
+st.title("🎚️ Software-Defined Audio Mixer + Equalizer + Generator")
+st.write("Aplikasi Proyek DSK: **Desain dan Implementasi Software-Defined Audio Mixer dan Equalizer**")
 
 # ==================================================
 # 🔀 Tabs
@@ -92,7 +113,7 @@ with tab1:
         data2, fs2 = sf.read(file2)
 
         if fs1 != fs2:
-            st.error("Sample rate kedua file harus sama!")
+            st.error("⚠️ Sample rate kedua file harus sama!")
         else:
             if len(data1.shape) > 1:
                 data1 = np.mean(data1, axis=1)
@@ -108,16 +129,13 @@ with tab1:
                 gain2 = st.slider("Gain Ch2 (dB)", -20, 12, 0)
                 pan2 = st.slider("Pan Ch2 (-1=L, +1=R)", -1.0, 1.0, 0.0)
 
-            # Mix
             mixed = mix_audio(data1, data2, gain1, gain2, pan1, pan2)
 
-            # Preview mix
             temp_mix = io.BytesIO()
             sf.write(temp_mix, mixed, fs1, format='wav')
             temp_mix.seek(0)
             st.audio(temp_mix, format='audio/wav')
 
-            # Equalizer
             st.subheader("🎛️ 3-Band Equalizer")
             bass_gain = st.slider("Bass (LPF @ 250Hz)", -12, 12, 0)
             mid_gain = st.slider("Mid (BPF 500Hz–4kHz)", -12, 12, 0)
@@ -132,18 +150,16 @@ with tab1:
             eq_stereo = np.vstack((eq, eq)).T
             eq_stereo /= np.max(np.abs(eq_stereo))
 
-            # Output preview
             temp_eq = io.BytesIO()
             sf.write(temp_eq, eq_stereo, fs1, format='wav')
             temp_eq.seek(0)
             st.audio(temp_eq, format='audio/wav')
 
-            # Visualisasi hasil EQ
             st.subheader("📈 Visualisasi (Setelah EQ)")
             zoom_dur_eq = st.slider("Durasi tampilan (detik)", 0.001, 0.05, 0.01, step=0.001)
             visualize_waveform(eq, fs1, "Output EQ (Left Channel)", duration_display=zoom_dur_eq)
+            visualize_spectrum(eq, fs1, "Spektrum Output EQ")
 
-            # Download hasil
             st.download_button(
                 label="💾 Download hasil Mixdown (.wav)",
                 data=temp_eq,
@@ -187,4 +203,4 @@ with tab2:
 
         zoom_dur = st.slider("Durasi tampilan gelombang (detik)", 0.001, 0.05, 0.01, step=0.001)
         visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz", duration_display=zoom_dur)
-
+        visualize_spectrum(wave, fs, f"Spektrum {wave_type} {freq} Hz")

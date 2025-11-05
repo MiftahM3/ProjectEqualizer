@@ -53,7 +53,7 @@ def generate_waveform(wave_type, freq, duration, fs):
 def visualize_waveform(wave, fs, title="Waveform", duration_display=0.01):
     """Visualisasi gelombang waktu-domain (aman & jelas)."""
     samples_to_show = int(fs * duration_display)
-    samples_to_show = min(samples_to_show, len(wave))  # batas aman
+    samples_to_show = min(samples_to_show, len(wave))
     t = np.linspace(0, samples_to_show / fs, samples_to_show, endpoint=False)
     wave_segment = wave[:samples_to_show]
 
@@ -82,66 +82,6 @@ def visualize_spectrum(wave, fs, title="Spektrum Frekuensi"):
     ax.grid(True, linestyle='--', alpha=0.6)
     ax.set_xlim(0, fs/2)
     st.pyplot(fig)
-# ==================================================
-# VISUALISASI SPEKTRUM 3-BAND (BASS / MID / TREBLE)
-# ==================================================
-st.subheader("📊 Analisis Spektrum 3-Band (Bass / Mid / Treble)")
-
-# Hitung FFT untuk tiap komponen
-N = len(left)
-f = np.fft.rfftfreq(N, 1/fs1)
-
-def compute_fft_db(signal):
-    mag = np.abs(np.fft.rfft(signal)) / N
-    return 20 * np.log10(mag + 1e-10)
-
-fft_before_db = compute_fft_db(left)
-fft_bass_db = compute_fft_db(bass)
-fft_mid_db = compute_fft_db(mid)
-fft_treble_db = compute_fft_db(treble)
-fft_after_db = compute_fft_db(eq)
-
-# Plot perbandingan sebelum–sesudah EQ
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(f, fft_before_db, color='gray', linewidth=1.0, label='Sebelum EQ')
-ax.plot(f, fft_after_db, color='orange', linewidth=1.5, label='Sesudah EQ')
-ax.set_title("Spektrum Sebelum vs Sesudah EQ", fontsize=12, fontweight='bold')
-ax.set_xlabel("Frekuensi (Hz)")
-ax.set_ylabel("Magnitudo (dB)")
-ax.legend()
-ax.grid(True, linestyle='--', alpha=0.6)
-ax.set_xlim(0, fs1 / 2)
-st.pyplot(fig)
-
-# Plot komponen BASS
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(f, fft_bass_db, color='blue', linewidth=1.2)
-ax.set_title("Spektrum Komponen BASS (LPF @250 Hz)", fontsize=12, fontweight='bold')
-ax.set_xlabel("Frekuensi (Hz)")
-ax.set_ylabel("Magnitudo (dB)")
-ax.grid(True, linestyle='--', alpha=0.6)
-ax.set_xlim(0, fs1 / 2)
-st.pyplot(fig)
-
-# Plot komponen MID
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(f, fft_mid_db, color='green', linewidth=1.2)
-ax.set_title("Spektrum Komponen MID (BPF 500–4000 Hz)", fontsize=12, fontweight='bold')
-ax.set_xlabel("Frekuensi (Hz)")
-ax.set_ylabel("Magnitudo (dB)")
-ax.grid(True, linestyle='--', alpha=0.6)
-ax.set_xlim(0, fs1 / 2)
-st.pyplot(fig)
-
-# Plot komponen TREBLE
-fig, ax = plt.subplots(figsize=(10, 4))
-ax.plot(f, fft_treble_db, color='red', linewidth=1.2)
-ax.set_title("Spektrum Komponen TREBLE (HPF @5kHz)", fontsize=12, fontweight='bold')
-ax.set_xlabel("Frekuensi (Hz)")
-ax.set_ylabel("Magnitudo (dB)")
-ax.grid(True, linestyle='--', alpha=0.6)
-ax.set_xlim(0, fs1 / 2)
-st.pyplot(fig)
 
 # ==================================================
 # 🧠 Streamlit App
@@ -190,12 +130,12 @@ with tab1:
                 pan2 = st.slider("Pan Ch2 (-1=L, +1=R)", -1.0, 1.0, 0.0)
 
             mixed = mix_audio(data1, data2, gain1, gain2, pan1, pan2)
-
             temp_mix = io.BytesIO()
             sf.write(temp_mix, mixed, fs1, format='wav')
             temp_mix.seek(0)
             st.audio(temp_mix, format='audio/wav')
 
+            # ==== 3-BAND EQ ====
             st.subheader("🎛️ 3-Band Equalizer")
             bass_gain = st.slider("Bass (LPF @ 250Hz)", -12, 12, 0)
             mid_gain = st.slider("Mid (BPF 500Hz–4kHz)", -12, 12, 0)
@@ -205,7 +145,6 @@ with tab1:
             bass = apply_filter(left, fs1, 'low', cutoff_low=250) * db_to_gain(bass_gain)
             mid = apply_filter(left, fs1, 'band', cutoff_low=500, cutoff_high=4000) * db_to_gain(mid_gain)
             treble = apply_filter(left, fs1, 'high', cutoff_high=5000) * db_to_gain(treble_gain)
-
             eq = bass + mid + treble
             eq_stereo = np.vstack((eq, eq)).T
             eq_stereo /= np.max(np.abs(eq_stereo))
@@ -215,11 +154,44 @@ with tab1:
             temp_eq.seek(0)
             st.audio(temp_eq, format='audio/wav')
 
-            st.subheader("📈 Visualisasi (Setelah EQ)")
-            zoom_dur_eq = st.slider("Durasi tampilan (detik)", 0.001, 0.05, 0.01, step=0.001)
-            visualize_waveform(eq, fs1, "Output EQ (Left Channel)", duration_display=zoom_dur_eq)
-            visualize_spectrum(eq, fs1, "Spektrum Output EQ")
+            # ==== VISUALISASI WAKTU & SPEKTRUM ====
+            st.subheader("📈 Visualisasi Sinyal")
+            zoom_dur = st.slider("Durasi tampilan (detik)", 0.001, 0.05, 0.01, step=0.001)
+            visualize_waveform(left, fs1, "Sebelum EQ (Left Channel)", duration_display=zoom_dur)
+            visualize_waveform(eq, fs1, "Sesudah EQ (Left Channel)", duration_display=zoom_dur)
 
+            # ==== SPEKTRUM SEBELUM vs SESUDAH EQ ====
+            N = len(left)
+            f = np.fft.rfftfreq(N, 1/fs1)
+            def fft_db(signal): return 20*np.log10(np.abs(np.fft.rfft(signal))/N + 1e-10)
+            fft_before, fft_after = fft_db(left), fft_db(eq)
+
+            fig, ax = plt.subplots(figsize=(10, 4))
+            ax.plot(f, fft_before, color='gray', linewidth=1.0, label='Sebelum EQ')
+            ax.plot(f, fft_after, color='orange', linewidth=1.4, label='Sesudah EQ')
+            ax.set_title("Perbandingan Spektrum Sebelum vs Sesudah EQ", fontsize=12, fontweight='bold')
+            ax.set_xlabel("Frekuensi (Hz)")
+            ax.set_ylabel("Magnitudo (dB)")
+            ax.legend(); ax.grid(True, linestyle='--', alpha=0.6)
+            ax.set_xlim(0, fs1/2)
+            st.pyplot(fig)
+
+            # ==== SPEKTRUM 3 BAND ====
+            st.subheader("📊 Analisis Spektrum 3-Band (Bass / Mid / Treble)")
+            fft_bass, fft_mid, fft_treble = fft_db(bass), fft_db(mid), fft_db(treble)
+
+            fig, ax = plt.subplots(figsize=(10, 4))
+            ax.plot(f, fft_bass, color='blue', label='Bass (<250Hz)')
+            ax.plot(f, fft_mid, color='green', label='Mid (500–4000Hz)')
+            ax.plot(f, fft_treble, color='red', label='Treble (>5kHz)')
+            ax.set_title("Spektrum Komponen Filter 3-Band", fontsize=12, fontweight='bold')
+            ax.set_xlabel("Frekuensi (Hz)")
+            ax.set_ylabel("Magnitudo (dB)")
+            ax.legend(); ax.grid(True, linestyle='--', alpha=0.6)
+            ax.set_xlim(0, fs1/2)
+            st.pyplot(fig)
+
+            # ==== DOWNLOAD ====
             st.download_button(
                 label="💾 Download hasil Mixdown (.wav)",
                 data=temp_eq,
@@ -241,8 +213,6 @@ with tab2:
         freq = st.number_input("Frekuensi (Hz)", min_value=1, max_value=20000, value=440, step=1)
         duration = st.number_input("Durasi (detik)", min_value=0.1, max_value=60.0, value=3.0, step=0.1)
 
-    st.info("💡 Kamu bisa ketik nilai manual di kolom atas untuk hasil yang lebih presisi.")
-
     if st.button("🎵 Generate Audio"):
         wave = generate_waveform(wave_type, freq, duration, fs)
         stereo = np.vstack((wave, wave)).T
@@ -263,5 +233,4 @@ with tab2:
 
         zoom_dur = st.slider("Durasi tampilan gelombang (detik)", 0.001, 0.05, 0.01, step=0.001)
         visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz", duration_display=zoom_dur)
-        visualize_spectrum(wave, fs, f"Spektrum {wave_type} {freq} Hz")
-
+        visualize_spectrum(wave, fs, f"Spektru_

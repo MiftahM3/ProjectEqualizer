@@ -115,9 +115,11 @@ def visualize_spectrum(wave, fs, title="Spektrum Frekuensi", show_cutoff=True):
 # ==================================================
 # 🧠 Streamlit App
 # ==================================================
-st.set_page_config(page_title="Aplikasi Audio Mixer Kelompok 2", page_icon="🎚️", layout="centered")
-st.title("🎚️ Software-Defined Audio Mixer + Equalizer + Generator")
-st.caption("Kelompok 2 • Digital Signal Processing (DSK) • 2025")
+st.set_page_config(
+    page_title="Aplikasi Audio Mixer Kelompok 2",
+    page_icon="https://cdn-icons-png.flaticon.com/512/168/168821.png",
+    layout="centered"
+)
 
 tab1, tab2 = st.tabs(["🎵 Mixer & Equalizer", "🎛️ Generator Sinyal"])
 
@@ -256,4 +258,5 @@ with tab2:
 
         visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz", duration_display=zoom_dur)
         visualize_spectrum(wave, fs, f"Spektrum {wave_type} {freq} Hz")
+
 

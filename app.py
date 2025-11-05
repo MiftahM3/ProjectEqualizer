@@ -155,7 +155,7 @@ with tab1:
             st.audio(temp_eq, format='audio/wav')
 
             # ==== VISUALISASI WAKTU & SPEKTRUM ====
-            st.subheader("📈 Visualisasi Sinyal")
+            st.subheader("📈 Visualisasi Sebelum & Sesudah EQ")
             zoom_dur = st.slider("Durasi tampilan (detik)", 0.001, 0.05, 0.01, step=0.001)
             visualize_waveform(left, fs1, "Sebelum EQ (Left Channel)", duration_display=zoom_dur)
             visualize_waveform(eq, fs1, "Sesudah EQ (Left Channel)", duration_display=zoom_dur)
@@ -170,21 +170,6 @@ with tab1:
             ax.plot(f, fft_before, color='gray', linewidth=1.0, label='Sebelum EQ')
             ax.plot(f, fft_after, color='orange', linewidth=1.4, label='Sesudah EQ')
             ax.set_title("Perbandingan Spektrum Sebelum vs Sesudah EQ", fontsize=12, fontweight='bold')
-            ax.set_xlabel("Frekuensi (Hz)")
-            ax.set_ylabel("Magnitudo (dB)")
-            ax.legend(); ax.grid(True, linestyle='--', alpha=0.6)
-            ax.set_xlim(0, fs1/2)
-            st.pyplot(fig)
-
-            # ==== SPEKTRUM 3 BAND ====
-            st.subheader("📊 Analisis Spektrum 3-Band (Bass / Mid / Treble)")
-            fft_bass, fft_mid, fft_treble = fft_db(bass), fft_db(mid), fft_db(treble)
-
-            fig, ax = plt.subplots(figsize=(10, 4))
-            ax.plot(f, fft_bass, color='blue', label='Bass (<250Hz)')
-            ax.plot(f, fft_mid, color='green', label='Mid (500–4000Hz)')
-            ax.plot(f, fft_treble, color='red', label='Treble (>5kHz)')
-            ax.set_title("Spektrum Komponen Filter 3-Band", fontsize=12, fontweight='bold')
             ax.set_xlabel("Frekuensi (Hz)")
             ax.set_ylabel("Magnitudo (dB)")
             ax.legend(); ax.grid(True, linestyle='--', alpha=0.6)

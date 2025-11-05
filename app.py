@@ -50,8 +50,8 @@ def generate_waveform(wave_type, freq, duration, fs):
 # ==================================================
 # 📊 Visualisasi (Versi Rapi)
 # ==================================================
-def visualize_waveform(wave, fs, title="Waveform", duration_display=0.01):
-    """Plot time-domain dengan tampilan bersih dan label jelas."""
+def visualize_waveform(wave, fs, title="Waveform", duration_display=0.02):
+    """Plot time-domain dengan tampilan otomatis menyesuaikan puncak gelombang."""
     samples_to_show = int(fs * duration_display)
     samples_to_show = min(samples_to_show, len(wave))
     t = np.linspace(0, samples_to_show / fs, samples_to_show, endpoint=False)
@@ -64,7 +64,11 @@ def visualize_waveform(wave, fs, title="Waveform", duration_display=0.01):
     ax.set_ylabel("Amplitudo", fontsize=11)
     ax.grid(True, linestyle='--', alpha=0.5)
     ax.set_facecolor('#FAFAFA')
-    ax.set_ylim(-1.1, 1.1)
+
+    # Sesuaikan sumbu Y agar puncak terlihat jelas
+    ymin, ymax = wave_segment.min(), wave_segment.max()
+    ax.set_ylim(ymin * 1.1, ymax * 1.1)
+
     st.pyplot(fig)
 
 def visualize_spectrum(wave, fs, title="Spektrum Frekuensi", show_cutoff=False):
@@ -231,3 +235,4 @@ with tab2:
         zoom_dur = st.slider("Durasi tampilan gelombang (detik)", 0.001, 0.05, 0.01, step=0.001)
         visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz", duration_display=zoom_dur)
         visualize_spectrum(wave, fs, f"Spektrum {wave_type} {freq} Hz")
+

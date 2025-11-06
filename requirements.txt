@@ -1,5 +1,5 @@
 streamlit
+soundfile
 numpy
 scipy
-soundfile
-matplotlib
+plotly

@@ -258,9 +258,10 @@ with tab2:
             key="zoom_gen"
         )
         st.caption(
-            f"Slider 'Durasi tampilan (detik)' mengatur berapa lama sinyal yang ditampilkan dalam grafik wave. "
+            f"Slider 'Durasi tampilan (detik)', "
             f"Saat ini: {zoom_dur:.3f} detik."
         )
 
         visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz", duration_display=zoom_dur)
         visualize_spectrum(wave, fs, f"Spektrum {wave_type} {freq} Hz")
+

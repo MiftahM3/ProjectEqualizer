@@ -179,6 +179,10 @@ with tab1:
             # ==== Analisis ====
             st.subheader("📈 Analisis Domain Waktu")
             zoom_dur = st.slider("Durasi tampilan (detik)", 0.001, 0.1, 0.02, step=0.001, key="zoom_eq")
+            st.caption(
+                f"Slider 'Durasi tampilan (detik)' mengatur berapa lama sinyal yang ditampilkan dalam grafik wave. "
+                f"Saat ini: {zoom_dur:.3f} detik."
+            )
             visualize_waveform(left, fs1, "Sebelum EQ (Left Channel)", duration_display=zoom_dur)
             visualize_waveform(eq, fs1, "Sesudah EQ (Left Channel)", duration_display=zoom_dur)
 
@@ -253,9 +257,10 @@ with tab2:
             0.001, 0.1, 0.02, step=0.001,
             key="zoom_gen"
         )
+        st.caption(
+            f"Slider 'Durasi tampilan (detik)' mengatur berapa lama sinyal yang ditampilkan dalam grafik wave. "
+            f"Saat ini: {zoom_dur:.3f} detik."
+        )
 
         visualize_waveform(wave, fs, f"{wave_type} Wave - {freq} Hz", duration_display=zoom_dur)
         visualize_spectrum(wave, fs, f"Spektrum {wave_type} {freq} Hz")
-
-
-
